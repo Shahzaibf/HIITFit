@@ -8,31 +8,30 @@
 import SwiftUI
 
 struct HistoryView: View {
-    let today = Date()
-    let yesterday = Date().addingTimeInterval(-86400)
-    let exercises1 = ["Squat", "Step Up", "Burpee", "Sun Salute"]
-    let exercises2 = ["Squat", "Step Up", "Burpee"]
+    let history = HistoryStore()
+    @Binding var showHistory: Bool
     var body: some View {
-        VStack {
-          Text("History")
+        ZStack(alignment: .topTrailing) {
+            Button(action: { showHistory.toggle()}) {
+                Image(systemName: "xmark.circle")
+            }
             .font(.title)
-        .padding()
-            Form {
-                Section(
-                    header:
-                        Text(today.formatted(.dateTime.year().month().day()))
-                        .font(.headline)) {
-                            ForEach(exercises1, id: \.self) { exercise in
-                              Text(exercise)
-                            }
-                        }
+            .padding()
+            VStack {
+                Text("History")
+                    .font(.title)
+                    .padding()
+                Form {
+                    ForEach(history.exerciseDays) { day in
                         Section(
                             header:
-                                Text(yesterday.formatted(.dateTime.year().month().day()))
+                                Text(day.date.formatted())
                                 .font(.headline)) {
-                                    ForEach(exercises2, id: \.self) { exercise in
-                                      Text(exercise)
-                                    }
+                                    ForEach(day.exercises, id: \.self) { exercise in
+                                        Text(exercise)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -40,5 +39,5 @@ struct HistoryView: View {
 }
 
 #Preview {
-    HistoryView()
+    HistoryView(showHistory: .constant(true))
 }
