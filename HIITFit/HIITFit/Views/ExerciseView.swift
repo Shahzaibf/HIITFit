@@ -9,6 +9,7 @@ import SwiftUI
 import AVKit
 
 struct ExerciseView: View {
+    @EnvironmentObject var history: HistoryStore
     var lastExercise : Bool {
         index + 1 == Exercise.exercises.count
     }
@@ -20,11 +21,16 @@ struct ExerciseView: View {
     let interval: TimeInterval = 30
     
     var startButton: some View {
-      Button("Start Exercise") { }
+      Button("Start Exercise") {
+          showTimer.toggle()
+      }
     }
 
     var doneButton: some View {
       Button("Done") {
+          history.addDoneExercise(Exercise.exercises[index].exerciseName)
+          timerDone = false
+          showTimer.toggle()
           if lastExercise {
               showSuccess.toggle()
           } else {
@@ -32,7 +38,8 @@ struct ExerciseView: View {
           }
       }
     }
-    
+    @State private var timerDone = false
+    @State private var showTimer = false
     @State private var showHistory = false
     @State private var rating = 0
     @State private var showSuccess = false
@@ -50,21 +57,23 @@ struct ExerciseView: View {
                     Text("Couldn't find \(exercise.videoName).mp4")
                         .foregroundColor(.red)
                 }
-                Text(Date().addingTimeInterval(interval), style: .timer)
-                  .font(.system(size: geometry.size.height * 0.07))
                 HStack(spacing: 150) {
                     startButton
                     doneButton
-                        .sheet(isPresented: $showSuccess){
+                        .disabled(!timerDone)
+                        .sheet(isPresented: $showSuccess) {
                             SuccessView(selectedTab: $selectedTab)
-                                .presentationDetents([.medium, .large])
+                                .presentationDetents([.medium,.large])
                         }
                 }
-                  .font(.title3)
-                  .padding()
-                RatingView(rating: $rating)
-                  .padding()
+                .font(.title3)
+                .padding()
+                if showTimer {
+                    TimerView(timerDone: $timerDone, size: geometry.size.height * 0.07)
+                }
                 Spacer()
+                RatingView(rating: $rating)
+                    .padding()
                 Button("History") {
                     showHistory.toggle()
                 }
@@ -77,5 +86,6 @@ struct ExerciseView: View {
 }
 
 #Preview {
-    ExerciseView(selectedTab: .constant(3), index: 3)
+    ExerciseView(selectedTab: .constant(0), index: 0)
+        .environmentObject(HistoryStore())
 }
